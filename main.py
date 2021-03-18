@@ -2,7 +2,7 @@ import cv2
 import imutils
 import numpy as np
 import handleDatabase
-import ppUtility as math
+import ppUtility as util
 
 protopath = "MobileNetSSD_deploy.prototxt"
 modelpath = "MobileNetSSD_deploy.caffemodel"
@@ -10,7 +10,7 @@ modelpath = "MobileNetSSD_deploy.caffemodel"
 net = cv2.dnn.readNetFromCaffe(protopath, modelpath)
 
 height = 190
-moveTreshold = 100
+moveTreshold = 10
 
 def main():
     feed = cv2.VideoCapture('vids/sess2/right.mp4')
@@ -30,12 +30,21 @@ def main():
 
         recs = detectHumanPosition(frame)
 
-        for (pos, pin) in recs:
-            cv2.circle(frame, pos, 5, (0, 255, 0), 2)
+        for (center, pin) in recs:
+            cv2.circle(frame, center, 5, (0, 255, 0), 2)
 
-            x = math.mapVals(pos[0], 0, W, 0, 300)
-            y = math.mapVals(pin, 60, 200, 300, 0)
+            util.push(center)
 
+            x = util.mapVals(util.avgHeading()[0], 0, W, 0, 300)
+            y = util.mapVals(pin, 60, 200, 300, 0)
+
+            #for pos in range(len(util.stack)):
+                #if(util.calcDistance(util.stack[pos], util.stack[pos - 1]) < moveTreshold):
+                     #cv2.circle(frame, util.stack[pos ], 3, (0, 255, 0), -1)
+                #else:
+                     #cv2.circle(frame, util.stack[pos], 3, (0, 0, 255), -1)
+               
+            cv2.circle(frame, util.avgHeading(), 3, (255, 255, 255), -1)
             cv2.circle(blank, (x, y), 5, (255, 0, 0), -1)
 
         cv2.imshow("Feed", frame)
@@ -72,4 +81,5 @@ def detectHumanPosition(frame):
 
     return recogs
 
-main()
+if __name__ == '__main__':
+    main()
