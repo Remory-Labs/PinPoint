@@ -9,6 +9,7 @@ net = cv2.dnn.readNetFromCaffe(protopath, modelpath)
 
 def main():
     feed = cv2.VideoCapture('vids/sess2/right.mp4')
+    feed = cv2.VideoCapture('video.mp4')
 
     while True:
         ret, frame = feed.read()
@@ -25,7 +26,7 @@ def main():
         for i in range(found.shape[2]):
 
             confidence = found[0, 0, i, 2]
-            if 0.4 < confidence:
+            if 0.2 < confidence:
                 idx = int(found[0, 0, i, 1])
 
                 if idx != 15:
