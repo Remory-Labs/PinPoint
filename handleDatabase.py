@@ -2,7 +2,9 @@ import mysql
 import mysql.connector
 
 db = None
-handler = None
+handler = None 
+
+#FBX python -> Unity Animation
 
 connected = False
 
