@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from utility import util
 
 class Detector:
     protopath = "models/MobileNetSSD_deploy.prototxt"
@@ -34,17 +33,14 @@ class Detector:
                     continue
 
                 bound = (found[0, 0, i, 3:7] * np.array([W, H, W, H])).astype("int")
-
-                center, pin = util.getCenterAndPin(bound)
-
-                recogs.append((center, pin, bound))
+                recogs.append(bound)
 
         return recogs
 
     @staticmethod
     def detectWithMotion(frame):
-        if(still is None):
-            raise Exception("Still image is not set, capture a still image first!")
+        #if(Detector.still is None):
+        #    raise Exception("Still image is not set, capture a still image first!")
         pass
 
     @staticmethod
@@ -59,9 +55,8 @@ class Detector:
         if(0 < len(found)):
             for (x, y, w, h) in found:
                 bound = (x, y, x + w, y + h)
-                center, pin = util.getCenterAndPin(bound)
 
-                recogs.append((center, pin, bound))
+                recogs.append(bound)
         return recogs
 
     @staticmethod
@@ -78,10 +73,13 @@ class Detector:
         if(0 < len(bodies)):
             for (x, y, w, h) in bodies:
                 bound = (x, y, x + w, y + h)
-                center, pin = util.getCenterAndPin(bound)
 
-                recogs.append((center, pin, bound))
+                recogs.append(bound)
         return recogs
+
+    @staticmethod
+    def detectWithBlazePose(frame):
+        pass
 
     def __init__(self):
         pass

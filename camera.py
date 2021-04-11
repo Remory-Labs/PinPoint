@@ -1,34 +1,38 @@
-import cv2, pickle, struct, socket
+import cv2, pickle, struct, socket, imutils
 
 class Camera:
-    camType = "" # video, webcam, ip
+    camType = None
+    heading = None
+    detectionMethod = "dnn"
     cam = cv2.VideoCapture()
 
-    clientSocket = ""
+    clientSocket = None
     data = b""
-    payloadSize = 0
+    payloadSize = None
 
     def getFrame(self):
         if(self.camType == "video" or self.camType == "webcam"):
-            ret, frame = Camera.cam.read()
+            ret, frame = self.cam.read()
+            frame = imutils.resize(frame, width=500)
             return frame
 
         elif(self.camType == "ip"):
-            while len(Camera.data) < Camera.payloadSize:
-                packet = Camera.clientSocket.recv(4*1024)
+            while len(self.data) < self.payloadSize:
+                packet = self.clientSocket.recv(4*1024)
                 if not packet: 
                     break
 
-                Camera.data += packet
-            packedSize = Camera.data[:Camera.payloadSize]
-            Camera.data = Camera.data[Camera.payloadSize:]
+                self.data += packet
+            packedSize = self.data[:self.payloadSize]
+            self.data = self.data[self.payloadSize:]
             msgSize = struct.unpack("Q", packedSize)[0]
             
-            while len(Camera.data) < msgSize:
-                Camera.data += Camera.clientSocket.recv(4*1024)
-            frameData = Camera.data[:msgSize]
-            Camera.data = Camera.data[msgSize:]
+            while len(self.data) < msgSize:
+                self.data += self.clientSocket.recv(4*1024)
+            frameData = self.data[:msgSize]
+            self.data = self.data[msgSize:]
             frame = pickle.loads(frameData)
+            frame = imutils.resize(frame, width=500)
             return frame
 
         else:
@@ -40,19 +44,20 @@ class Camera:
         if(self.camType == "video"):
             if not type(args) is str:
                 raise TypeError("Video type needs correct path to file. Expected: string")
-            Camera.cam = cv2.VideoCapture(args)
+            self.cam = cv2.VideoCapture(args)
 
         elif(self.camType == "webcam"):
             if not type(args) is int:
                 raise TypeError("Webcam type needs a camera index. Expected: int")
-            Camera.cam = cv2.VideoCapture(args)
+            self.cam = cv2.VideoCapture(args)
 
         elif(self.camType == "ip"):
             if not type(args) is str:
                 raise TypeError("IP type needs a correct IP address. Expected: string")
-            Camera.clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            Camera.clientSocket.connect((args, 2077))
-            Camera.payloadSize = struct.calcsize("Q")
+            self.clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            self.clientSocket.connect((args, 2077))
+           
+            self.payloadSize = struct.calcsize("Q")
 
         else:
             raise Exception("Camera type is not supported, they are the following: Video, Webcam, IP")
