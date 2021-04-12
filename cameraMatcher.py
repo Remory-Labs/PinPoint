@@ -2,8 +2,6 @@ from camera import Camera
 from humanDetector import Detector
 from utility import Util
 from pos import Positon
-import imutils
-import cv2
 
 class Matcher:
     height = None
@@ -15,37 +13,67 @@ class Matcher:
         Matcher.cameras = cameras
 
         for camera in cameras:
-            p = Positon(2)
+            p = Positon(8)
             Matcher.positions.append(p)
 
     @staticmethod
-    def match():
+    def calcPosition():
         results = []
 
-        for camera in Matcher.cameras:
-            frame = camera.getFrame()
-            bounds = Matcher.getRecs(frame, camera.detectionMethod)
-            personPos = None
+        for i in range(len(Matcher.cameras)):
+            frame = Matcher.cameras[i].getFrame(500)
+            bounds = Matcher.getRecs(frame, Matcher.cameras[i].detectionMethod)
 
-            for person in bounds:
-                personPos = person #TODO DECIDE WHICH ONE IS THE CORRECT ONE
+            if(len(bounds) == 0):
+                if(Matcher.positions[i].vector != None):
+                    results.append((frame, (Matcher.positions[i].positionOnFrame, Matcher.positions[i].heightOnFrame, [])))
+                    continue
+                else:
+                    results.append((frame, -1))
+                    continue
 
-                #print(bounds)
+            area = max(map(lambda a: Util.getArea(a), bounds))
+            filter(lambda a: Util.getArea(a) == area, bounds)
 
-                center, personHeight = Util.getCenterAndHumanPin(personPos, Matcher.height)
+            personPos = bounds[0]
 
-                if(len(Matcher.positions[Matcher.cameras.index(camera)].stack) == 0):
-                    Matcher.positions[Matcher.cameras.index(camera)].push(center)
+            center, personHeight = Util.getCenterAndHumanPin(personPos, Matcher.height)
+            Matcher.positions[i].heightOnFrame = personHeight
 
-                centerAvg = Matcher.positions[Matcher.cameras.index(camera)].avgPos()
+            Matcher.positions[i].push(center)
 
-                if(Util.calcDistance(center, centerAvg) <= 20 or 2.0 <= Util.getAspectRatio(personPos) <= 3.5):
-                    Matcher.positions[Matcher.cameras.index(camera)].push(center)
-                recs = (centerAvg, personHeight, personPos)
+            centerAvg = Util.avgPos(Matcher.positions[i].stack)
 
-                results.append((frame, recs))
+            calcPos = []
+
+            for pos in range(len(Matcher.positions[i].stack)):
+                x1 = Matcher.positions[i].stack[pos]
+                x2 = Matcher.positions[i].stack[pos - 1]
+                if(Util.calcDistance(x1, x2) <= 20 and 2.5 < Util.getAspectRatio(personPos) <= 3.5):
+                    calcPos.append(Matcher.positions[i].stack[pos])
+
+            if(len(calcPos) == 0):
+                calcPos = Matcher.positions[i].stack
+
+            calcAvg = Util.avgPos(calcPos)
+
+            vector = Util.vectorHeading(calcPos[0], calcPos[-1])
+            Matcher.positions[i].vector = vector
+
+            newPos = Util.addVectorToPoint(vector, calcAvg)
+            Matcher.positions[i].positionOnFrame = newPos
+
+            recs = (newPos, personHeight, personPos)
+
+            results.append((frame, recs))
 
         return results[:len(Matcher.cameras)]
+
+    @staticmethod
+    def matchPositions():
+        for i in range(len(Matcher.cameras)):
+            #print(Matcher.cameras[i].heading)
+            pass
 
     @staticmethod
     def getRecs(frame, method):

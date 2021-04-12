@@ -3,17 +3,17 @@ import cv2, pickle, struct, socket, imutils
 class Camera:
     camType = None
     heading = None
-    detectionMethod = "dnn"
+    detectionMethod = None
     cam = cv2.VideoCapture()
 
     clientSocket = None
     data = b""
     payloadSize = None
 
-    def getFrame(self):
+    def getFrame(self, size=500):
         if(self.camType == "video" or self.camType == "webcam"):
             ret, frame = self.cam.read()
-            frame = imutils.resize(frame, width=500)
+            frame = imutils.resize(frame, width=size)
             return frame
 
         elif(self.camType == "ip"):
@@ -32,14 +32,16 @@ class Camera:
             frameData = self.data[:msgSize]
             self.data = self.data[msgSize:]
             frame = pickle.loads(frameData)
-            frame = imutils.resize(frame, width=500)
+            frame = imutils.resize(frame, width=size)
             return frame
 
         else:
             raise Exception("Video stream ended for an Unknown reason.")
 
-    def __init__(self, camType, args):
+    def __init__(self, camType="video", heading="front", method="dnn", args="0"):
         self.camType = camType.lower()
+        self.heading = heading.lower()
+        self.detectionMethod = method.lower()
 
         if(self.camType == "video"):
             if not type(args) is str:

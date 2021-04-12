@@ -24,16 +24,36 @@ class Util:
 
     @staticmethod
     def getAspectRatio(bound):
+        h, w = Util.getHW(bound)
+        return h / w
+
+    @staticmethod
+    def getArea(bound):
+        h, w = Util.getHW(bound)
+        return h * w
+
+    @staticmethod
+    def getHW(bound):
         (startX, startY, endX, endY) = bound
         w = Util.calcDistance((startX, startY), (endX, startY))
         h = Util.calcDistance((startX, startY), (startX, endY))
-        return h / w
+        return h, w
 
     @staticmethod
     def vectorHeading(p1, p2):
         x1, y1 = p1
         x2, y2 = p2
 
-        x = x2 - x1
-        y = y2 - y1
-        pass
+        x = int((x2 - x1) / 2)
+        y = int((y2 - y1) / 2)
+        return (x, y)
+
+    @staticmethod
+    def addVectorToPoint(vector, point):
+        return tuple(map(lambda a, b: a + b, vector, point))
+
+    @staticmethod
+    def avgPos(array):
+        xS = [x[0] for x in array]
+        yS = [y[1] for y in array]
+        return (int(sum(xS) / len(array)), int(sum(yS) / len(array)))

@@ -1,5 +1,8 @@
 import cv2
 import numpy as np
+import mediapipe as mp
+mp_drawing = mp.solutions.drawing_utils
+mp_pose = mp.solutions.pose
 
 class Detector:
     protopath = "models/MobileNetSSD_deploy.prototxt"
@@ -7,6 +10,7 @@ class Detector:
     bodyCascade = cv2.CascadeClassifier("models/body.xml")
 
     net = cv2.dnn.readNetFromCaffe(protopath, modelpath)
+    pose =  mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5, smooth_landmarks=True) 
 
     hog = cv2.HOGDescriptor()
     hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
@@ -78,8 +82,26 @@ class Detector:
         return recogs
 
     @staticmethod
-    def detectWithBlazePose(frame):
-        pass
+    def detectWithBlazePose(frame, showPose=False):
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        results = Detector.pose.process(frame)
+        
+        try:
+            h, w = frame.shape[:2]
+
+            converted = []
+
+            for id, landmark in enumerate(results.pose_landmarks.landmark):
+                converted.append((int(landmark.x * w), int(landmark.y * h)))
+
+            topX = min(map(lambda a: a[0], converted))
+            topY = min(map(lambda a: a[1], converted))
+            bottomX = max(map(lambda a: a[0], converted))
+            bottomY = max(map(lambda a: a[1], converted))
+
+            return [(topX, topY, bottomX, bottomY)]
+        except:
+            return []
 
     def __init__(self):
         pass
