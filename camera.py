@@ -4,17 +4,22 @@ class Camera:
     camType = None
     heading = None
     detectionMethod = None
+    flipped = False
     cam = cv2.VideoCapture()
+
+    h = None
+    w = None
 
     clientSocket = None
     data = b""
     payloadSize = None
 
     def getFrame(self, size=500):
+        frame = None
+        
         if(self.camType == "video" or self.camType == "webcam"):
             ret, frame = self.cam.read()
             frame = imutils.resize(frame, width=size)
-            return frame
 
         elif(self.camType == "ip"):
             while len(self.data) < self.payloadSize:
@@ -33,15 +38,23 @@ class Camera:
             self.data = self.data[msgSize:]
             frame = pickle.loads(frameData)
             frame = imutils.resize(frame, width=size)
-            return frame
 
         else:
             raise Exception("Video stream ended for an Unknown reason.")
 
-    def __init__(self, camType="video", heading="front", method="dnn", args="0"):
+        if(self.flipped):
+            frame = cv2.flip(frame, 1)
+
+        return frame
+        
+    def replay(self):
+        self.cam.set(cv2.CAP_PROP_POS_FRAMES, 1)
+        
+    def __init__(self, camType="video", heading="front", method="dnn", args="0", flipped=False):
         self.camType = camType.lower()
         self.heading = heading.lower()
         self.detectionMethod = method.lower()
+        self.flipped = flipped
 
         if(self.camType == "video"):
             if not type(args) is str:
@@ -63,3 +76,8 @@ class Camera:
 
         else:
             raise Exception("Camera type is not supported, they are the following: Video, Webcam, IP")
+       
+        try:
+            self.h, self.w = self.getFrame().shape[:2]
+        except:
+            raise Exception("Can't read from camera, perhaps it's not configured correctly.")

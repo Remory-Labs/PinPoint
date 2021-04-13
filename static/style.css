@@ -1,0 +1,48 @@
+body{
+    background-color: white;
+}
+html, body{
+    height: 100%;
+}
+img{
+    max-width: 100%;
+    max-height: 100%;
+    background-image: url("endOfStream.png")
+}
+
+.delete{
+    margin-top: 5%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+}
+
+.leftSide > * {
+    margin-top: 5%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+.leftSide{
+    border-right: 6px solid grey;
+}
+
+.rightSide{
+    border-left: 6px solid grey;
+}
+
+.maximize{
+    height: 100vh;
+}
+
+#counter{
+    float: right;
+}
+
+#purge{
+    position: absolute;
+    bottom: 5%;
+}

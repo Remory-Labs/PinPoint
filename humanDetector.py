@@ -1,8 +1,7 @@
 import cv2
 import numpy as np
 import mediapipe as mp
-mp_drawing = mp.solutions.drawing_utils
-mp_pose = mp.solutions.pose
+mpPose = mp.solutions.pose
 
 class Detector:
     protopath = "models/MobileNetSSD_deploy.prototxt"
@@ -10,7 +9,7 @@ class Detector:
     bodyCascade = cv2.CascadeClassifier("models/body.xml")
 
     net = cv2.dnn.readNetFromCaffe(protopath, modelpath)
-    pose =  mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5, smooth_landmarks=True) 
+    pose =  mpPose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5, smooth_landmarks=True) 
 
     hog = cv2.HOGDescriptor()
     hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
@@ -70,7 +69,7 @@ class Detector:
         bodies = Detector.bodyCascade.detectMultiScale(
             gray,
             scaleFactor=1.3,
-            minNeighbors=5,
+            minNeighbors=3,
         )
 
         recogs = []

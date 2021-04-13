@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PinPoint</title>
+    <link rel="shortcut icon" type="image/jpg" href="{{ url_for('static', filename='favicon.ico' )}}"/>
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css' )}}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css' )}}">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row maximize">
+            <div class="col-lg-2 leftSide maximize"> <!--Left form group-->
+                <div class="row">
+                  <form action="replay" method="POST">
+                    <button type="submit" name="replay" class="btn btn-warning">Restart feeds</button>
+                  </form>
+                </div>
+                <div class="row">
+                  <form action="calibrate" method="POST">
+                    <button type="submit" name="calibrate" class="btn btn-warning">Calibrate</button>
+                  </form>
+                </div>
+                <div class="row">
+                  <form action="track" method="POST">
+                    <button type="submit" name="track" class="btn btn-success">Track person</button>
+                  </form>
+                </div>
+                <div class="row" id="purge">
+                  <form action="purge" method="POST">
+                    <button type="submit" name="purge" class="btn btn-danger">Purge all cameras</button>
+                  </form>
+                </div>
+            </div>
+            <div class="col-lg-7 maximize"> <!--Center div group-->
+                <div class="col-lg-12"> <!--Main video feed-->
+                  <div class="card">
+                    <div class="card-body">
+                        <img src="{{images[0]}}">
+                        <h4 id="counter">{{images|length}}/4 feeds</h4>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-lg-12"> <!--Mini video feeds-->
+                  <div class=row>
+                      {% for image in images[1:] %}
+                      <div class="col-lg-4">
+                          <div>
+                              <img src="{{image}}"> 
+                          </div>
+                          <div>
+                              <form action="delete_cam" method="POST">
+                                  <button type="submit" name="{{images.index(image)}}" class="btn btn-danger delete">Delete</button>
+                              </form>
+                          </div>
+                      </div>
+                      {% endfor %}
+                  </div>
+                </div>
+            </div>
+            <div class="col-lg-3 rightSide maximize"> <!--Right form group-->
+                <form action="new_cam" method="POST">
+                    <div class="form-group row">
+                      <label for="cSide" class="col-4 col-form-label">Camera position:</label> 
+                      <div class="col-6">
+                        <select id="cSide" name="cSide" class="custom-select" required="required">
+                          <option value="front">Front side</option>
+                          <option value="left">Left side</option>
+                          <option value="back">Back side</option>
+                          <option value="right">Right side</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <label class="col-4">Camera type:</label> 
+                      <div class="col-6">
+                        <div class="custom-control custom-radio custom-control-inline">
+                          <input name="cType" id="cType_video" type="radio" class="custom-control-input" value="video" required="required" checked> 
+                          <label for="cType_video" class="custom-control-label">Video</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                          <input name="cType" id="cType_webcam" type="radio" class="custom-control-input" value="webcam" required="required"> 
+                          <label for="cType_webcam" class="custom-control-label">Webcam</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                          <input name="cType" id="cType_ip" type="radio" class="custom-control-input" value="ip" required="required"> 
+                          <label for="cType_ip" class="custom-control-label">IP</label>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="form-group row">
+                      <label for="arguments" class="col-4 col-form-label">Args:</label> 
+                      <div class="col-6">
+                        <div class="input-group">
+                          <input id="arguments" name="arguments" placeholder="leftSide.mp4" type="text" class="form-control" required="required" aria-describedby="argumentsHelpBlock">
+                        </div> 
+                        <span id="argumentsHelpBlock" class="form-text text-muted">Video: Path, Webcam: ID, IP: IP Address</span>
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <label for="detectMethod" class="col-4 col-form-label">Detection type:</label> 
+                      <div class="col-5">
+                        <select id="detectMethod" name="detectMethod" class="custom-select" required="required">
+                          <option value="dnn">DNN</option>
+                          <option value="motion">Motion</option>
+                          <option value="hog">HOG</option>
+                          <option value="haar">Haar Cascade</option>
+                          <option value="blaze">BlazePose</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <label class="col-4">Detect pose?</label> 
+                      <div class="col-6">
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input name="pose" id="pose_0" type="checkbox" class="custom-control-input" value="y"> 
+                          <label for="pose_0" class="custom-control-label">Yes</label>
+                        </div>
+                      </div>
+                    </div> 
+                    <div class="form-group row">
+                      <div class="offset-4 col-6">
+                        <button name="new_cam" type="submit" class="btn btn-success">Add camera</button>
+                      </div>
+                    </div>
+                  </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
