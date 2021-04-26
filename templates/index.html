@@ -15,19 +15,26 @@
         <div class="row maximize">
             <div class="col-lg-2 leftSide maximize"> <!--Left form group-->
                 <div class="row">
-                  <form action="replay" method="POST">
-                    <button type="submit" name="replay" class="btn btn-warning">Restart feeds</button>
-                  </form>
+                  <div class="input-group col-12">
+                    <form action="replay" method="POST">
+                      <button type="submit" name="replay" class="btn btn-warning">Restart feeds</button>
+                    </form>
+                  </div>
                 </div>
                 <div class="row">
                   <form action="calibrate" method="POST">
-                    <button type="submit" name="calibrate" class="btn btn-warning">Calibrate</button>
+                    <div class="input-group col-12">
+                      <button type="submit" name="calibrate" class="btn btn-warning">Calibrate</button>
+                      <input type="number" id="height" name="height" placeholder="180" class="form-control" required="required" min="100" max="210">
+                    </div> 
                   </form>
                 </div>
                 <div class="row">
-                  <form action="track" method="POST">
-                    <button type="submit" name="track" class="btn btn-success">Track person</button>
-                  </form>
+                  <div class="input-group col-12">
+                    <form action="track" method="POST">
+                      <button type="submit" name="track" class="btn btn-success">Track person</button>
+                    </form>
+                  </div>
                 </div>
                 <div class="row" id="purge">
                   <form action="purge" method="POST">
@@ -40,14 +47,14 @@
                   <div class="card">
                     <div class="card-body">
                         <img src="{{images[0]}}">
-                        <h4 id="counter">{{images|length}}/4 feeds</h4>
+                        <h4 id="counter">{{images|length - 1}}/4 feeds</h4>
                     </div>
                   </div>
                 </div>
 
                 <div class="col-lg-12"> <!--Mini video feeds-->
                   <div class=row>
-                      {% for image in images[1:] %}
+                      {% for image in images[1:-1] %}
                       <div class="col-lg-4">
                           <div>
                               <img src="{{image}}"> 
@@ -114,20 +121,14 @@
                       </div>
                     </div>
                     <div class="form-group row">
-                      <label class="col-4">Detect pose?</label> 
-                      <div class="col-6">
-                        <div class="custom-control custom-checkbox custom-control-inline">
-                          <input name="pose" id="pose_0" type="checkbox" class="custom-control-input" value="y"> 
-                          <label for="pose_0" class="custom-control-label">Yes</label>
-                        </div>
-                      </div>
-                    </div> 
-                    <div class="form-group row">
                       <div class="offset-4 col-6">
                         <button name="new_cam" type="submit" class="btn btn-success">Add camera</button>
                       </div>
                     </div>
                   </form>
+                  <div>
+                    <!--<img src="{{images[-1]}}">-->
+                  </div>
             </div>
         </div>
     </div>

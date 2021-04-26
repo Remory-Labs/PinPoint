@@ -6,8 +6,13 @@ pip install opencv-python
 pip install imutils
 
 pip install mysql
-pip install mysql-connector
+pip install mysql-connector-python
 
 pip install Flask
 
 pip install mediapipe
+
+apt install docker
+apt install docker-compose
+
+docker-compose up

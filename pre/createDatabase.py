@@ -1,11 +1,19 @@
+import sys
 import mysql.connector
 
 # Setting up database
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    passwd=""
-)
+try:
+  db = mysql.connector.connect(
+      host="localhost",
+      user="root",
+      password="root",
+      auth_plugin='mysql_native_password'
+  )
+except:
+  print("Database is not responding, is it running?")
+  input("Press Enter to exit setup...")
+  sys.exit()
+  
 
 handler = db.cursor()
 
@@ -19,16 +27,16 @@ db.disconnect()
 db = mysql.connector.connect(
     host="localhost",
     user="root",
-    passwd="",
+    password="root",
     database="pinpoint"
 )
 
 handler = db.cursor()
 
-handler.execute("DROP TABLE IF EXISTS `test`;")
-qr = """CREATE TABLE IF NOT EXISTS `test` (
+handler.execute("DROP TABLE IF EXISTS `position`;")
+qr = """CREATE TABLE IF NOT EXISTS `position` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `case` VARCHAR(50) NULL,
+  `pos` VARCHAR(50) NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 """
@@ -37,7 +45,6 @@ handler.execute(qr)
 handler.execute("DROP TABLE IF EXISTS `recognitions`;")
 qr = """ CREATE TABLE IF NOT EXISTS `recognitions` (
   `recID` INT NOT NULL AUTO_INCREMENT,
-  `recPos` VARCHAR(15) NOT NULL,
   PRIMARY KEY (`recID`))
 ENGINE = InnoDB;
 """
@@ -60,3 +67,6 @@ handler.execute(qr)
 
 handler.close()
 db.disconnect()
+
+print("Database created successfully.")
+input("Press Enter to exit setup...")

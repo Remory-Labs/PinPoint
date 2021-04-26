@@ -21,7 +21,7 @@ class Matcher:
         results = []
 
         for i in range(len(Matcher.cameras)): #Finds, and calculates Human body position for every camera.
-            frame = Matcher.cameras[i].getFrame(500)
+            frame = Matcher.cameras[i].getFrame(1280)
             bounds = Matcher.getRecs(frame, Matcher.cameras[i].detectionMethod)
 
             if(len(bounds) == 0): #If no body is found, try to return last position, otherwise -1
@@ -33,8 +33,8 @@ class Matcher:
                     continue
 
             if(1 < len(bounds)):
-                area = max(map(lambda area: Util.getArea(area), bounds))  #Find the biggest area of detections
-                filter(lambda area: Util.getArea(area) == area, bounds) #For filtering out smaller, accidental detections
+                maxArea = max(map(lambda area: Util.getArea(area), bounds))  #Find the biggest area of detections
+                filter(lambda area: Util.getArea(area) == maxArea, bounds) #For filtering out smaller, accidental detections
 
             personPos = bounds[0]
 
@@ -87,7 +87,8 @@ class Matcher:
         if(len(results) == 1):
             side, (x, y) = results[0]
 
-            return (x, y)
+            return Matcher.computeForCamera(side, (x, y))
+
         else:
             sides = [s[0] for s in results]
             positions = [pos[1] for pos in results]
@@ -97,37 +98,38 @@ class Matcher:
             back = sides.count("back")
             right = sides.count("right")
 
-            if(front and back == 1 and len(results) == 2):
-                return Matcher.computePositionFor2(side.index("back"), positions)
+            if(len(results) == 2):
+                array = []
+                xS = 0
+                yS = 0
+                for side, pos in zip(sides, positions):
+                    (x, y) = Matcher.computeForCamera(side, pos)
+                    if(side == "left" or "right"):
+                        xS = x
+                    if(side == "back" or "front"):
+                        xY = x
 
-            if(left and right == 1 and len(results) == 2):
-                (xPos, depth) = Matcher.computePositionFor2(side.index("right"), positions) #TODO Depth is fine, but x axis is not working
-                return (depth, xPos)
-
-            if((left or right == 1) and (front or back == 1) and len(results) == 3):
-                pass
+                return (xS, xY)
 
     @staticmethod
-    def computePositionFor2(sideIndex, positions):
-        (xPos, depth) = positions[sideIndex]
-        nXpos = abs(100 - xPos)
-        nDepth = abs(100 - depth)
+    def computeForCamera(side, pos):
+        (x, y) = pos
 
-        positions[sideIndex] = (nXpos, nDepth)
-        avg = Util.avgPos(positions)
+        if(side == "front"):
+            return(x, abs(100 - y))
 
-        return avg
+        elif(side == "left"):
+            return(y, x)
+        
+        elif(side == "back"):
+            return(x, y)
+
+        else:
+            return(abs(100 - y), abs(100 - x))
 
 
     @staticmethod
     def getRecs(frame, method):
-        #switch = {
-        #    "dnn": Detector.detectWithDNN(frame),
-        #    "motion": Detector.detectWithMotion(frame),
-        #    "hog": Detector.detectWithHOG(frame),
-        #    "haar": Detector.detectWithHaarCascade(frame),
-        #    "blaze": Detector.detectWithBlazePose(frame)
-        #}
 
         if(method == "dnn"):
             return Detector.detectWithDNN(frame)
