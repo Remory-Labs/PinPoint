@@ -46,22 +46,22 @@
                 <div class="col-lg-12"> <!--Main video feed-->
                   <div class="card">
                     <div class="card-body">
-                        <img src="{{images[0]}}">
-                        <h4 id="counter">{{images|length - 1}}/4 feeds</h4>
+                        <img src="{{imgs[0]}}">
+                        <h4 id="counter">{{imgs|length}}/4 feeds</h4>
                     </div>
                   </div>
                 </div>
 
                 <div class="col-lg-12"> <!--Mini video feeds-->
                   <div class=row>
-                      {% for image in images[1:-1] %}
+                      {% for image in imgs[1:] %}
                       <div class="col-lg-4">
                           <div>
                               <img src="{{image}}"> 
                           </div>
                           <div>
                               <form action="delete_cam" method="POST">
-                                  <button type="submit" name="{{images.index(image)}}" class="btn btn-danger delete">Delete</button>
+                                  <button type="submit" name="{{imgs.index(image)}}" class="btn btn-danger delete">Delete</button>
                               </form>
                           </div>
                       </div>
@@ -127,7 +127,7 @@
                     </div>
                   </form>
                   <div>
-                    <!--<img src="{{images[-1]}}">-->
+
                   </div>
             </div>
         </div>

@@ -1,6 +1,5 @@
 from flask import Flask, render_template, Response, request, redirect, url_for
 import cv2
-import numpy as np
 
 from camera import Camera
 from cameraMatcher import Matcher
@@ -15,16 +14,13 @@ height = 180
 halt = False
 track = False
 m = None
-blanks = np.zeros((300, 300), np.uint8)
+Camera.WIDTH = 1280
 staticF = cv2.imread("static/endOfStream.png")
 
 @app.route('/')
 def index():
     global images
-    a = images.copy()
-    #a.append('/blank')
-    print(a)
-    return render_template("index.html", images=a)
+    return render_template("index.html", imgs=images)
 
 def getCamFrame(id):
     global staticF
@@ -32,36 +28,41 @@ def getCamFrame(id):
         frame = staticF
         global halt
         global track
-        global blanks
 
         if(not halt):
-            blanks = np.zeros((300, 300), np.uint8)
             if(len(cams) == int(id[1])):
                 return
 
             try:
                 if(track == True):
-                    h = m.calcPosition()
-                    p = m.matchPositions()
+                    p = m.calcPosition(int(id[1]))
 
-                    frame, recs = h[0]
+                    pos = m.matchIt(p)
+                    for cam in p:
+                        for detection in range(0, len(cam[1][0])):
+                            g = cam[1]
+                            center = g[0][detection]
+                            height = g[1][detection]
+                            #sides = g[2][detection]
+                            rec = g[3][detection]
+                            #idx = g[4]
 
-                    (center, personHeight, personPosBox) = recs
-                    (x1, y1, x2, y2) = personPosBox
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0))
+                            cv2.rectangle(cam[0], (rec[0], rec[1]), (rec[2], rec[3]), (255, 0, 0), 3)
+                            #cv2.circle(cam[0], center, 10, (255, 0, 255), -1)
+                            #cv2.putText(cam[0], str(height), (center[0] + 60, center[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 3)
 
-                    cv2.circle(blanks, (p[0], p[1]), 5, (255, 255, 255), cv2.FILLED)
-                    
-                    if(Database.getRecogsNums() == 1):
-                        Database.logRecogs()
-                    Database.logPos(p)
+                            frame = cam[0]
+
+                            if(Database.getRecogsNums() == 1):
+                                Database.logRecogs()
+                            Database.logPos(pos)
                 else:
-                    frame = cams[int(id[1])].getFrame(1280)
+                    frame = cams[int(id[1])].getFrame()
 
                 frame = cv2.imencode('.jpg', frame)[1].tobytes()
             except:
                 frame = cv2.imencode('.jpg', staticF)[1].tobytes()
-                Database.logError('Minor')
+                #Database.logError('Minor')
         else:
              frame = cv2.imencode('.jpg', staticF)[1].tobytes()
 
@@ -71,14 +72,6 @@ def getCamFrame(id):
 @app.route("/feeds<id>")
 def feeds(id):
     return Response(getCamFrame(id), mimetype="multipart/x-mixed-replace; boundary=frame")
-
-@app.route("/blank")
-def blank():
-    return Response(getBlank(), mimetype="multipart/x-mixed-replace; boundary=frame")
-
-def getBlank():
-    global blanks
-    yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + cv2.imencode('.jpg', blanks)[1].tobytes() + b'\r\n')
 
 @app.route('/new_cam', methods=["POST", "GET"])
 def addcam():

@@ -6,15 +6,14 @@ class Camera:
     detectionMethod = None
     flipped = False
     cam = cv2.VideoCapture()
+    index = 0
+
+    WIDTH = 720
 
     h = None
     w = None
 
-    clientSocket = None
-    data = b""
-    payloadSize = None
-
-    def getFrame(self, size=500):
+    def getFrame(self, size=WIDTH):
         frame = None
         
         if(self.camType == "video" or self.camType == "webcam"):
@@ -22,21 +21,11 @@ class Camera:
             frame = imutils.resize(frame, width=size)
 
         elif(self.camType == "ip"):
-            while len(self.data) < self.payloadSize:
-                packet = self.clientSocket.recv(4*1024)
-                if not packet: 
-                    break
-
-                self.data += packet
-            packedSize = self.data[:self.payloadSize]
-            self.data = self.data[self.payloadSize:]
-            msgSize = struct.unpack("Q", packedSize)[0]
-            
-            while len(self.data) < msgSize:
-                self.data += self.clientSocket.recv(4*1024)
-            frameData = self.data[:msgSize]
-            self.data = self.data[msgSize:]
-            frame = pickle.loads(frameData)
+            frame = ""
+            try:
+                frame = self.cam.grab()[1]
+            except:
+                frame = self.cam.read()[1]
             frame = imutils.resize(frame, width=size)
 
         else:
@@ -50,11 +39,12 @@ class Camera:
     def replay(self):
         self.cam.set(cv2.CAP_PROP_POS_FRAMES, 1)
         
-    def __init__(self, camType="video", heading="front", method="dnn", args="0", flipped=False):
+    def __init__(self, camType="video", heading="front", method="dnn", args="0", flipped=False, index=0, width=720):
         self.camType = camType.lower()
         self.heading = heading.lower()
         self.detectionMethod = method.lower()
         self.flipped = flipped
+        self.index = index
 
         if(self.camType == "video"):
             if not type(args) is str:
@@ -62,22 +52,21 @@ class Camera:
             self.cam = cv2.VideoCapture(args)
 
         elif(self.camType == "webcam"):
-            if not type(args) is int:
+            try:
+                index = int(args)
+                self.cam = cv2.VideoCapture(index)
+            except ValueError:
                 raise TypeError("Webcam type needs a camera index. Expected: int")
-            self.cam = cv2.VideoCapture(args)
 
         elif(self.camType == "ip"):
             if not type(args) is str:
                 raise TypeError("IP type needs a correct IP address. Expected: string")
-            self.clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            self.clientSocket.connect((args, 2077))
-           
-            self.payloadSize = struct.calcsize("Q")
+            self.cam = cv2.VideoCapture(args)
 
         else:
             raise Exception("Camera type is not supported, they are the following: Video, Webcam, IP")
        
         try:
-            self.h, self.w = self.getFrame().shape[:2]
+            self.h, self.w = self.getFrame(Camera.WIDTH).shape[:2]
         except:
             raise Exception("Can't read from camera, perhaps it's not configured correctly.")

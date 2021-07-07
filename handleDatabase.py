@@ -67,15 +67,18 @@ class Database:
 
     @staticmethod
     def logError(eType):
-        global handler
-        global connected
-        global errors
+        try:
+            global handler
+            global connected
+            global errors
 
-        if(not connected):
-            return "You are not connected to the database, queries can't be executed without connection."
-        handler.execute("INSERT INTO errors (errorId, error_type) VALUES (%s, %s)", (errors, eType))
-        errors += 1
-        db.commit()
+            if(not connected):
+                return "You are not connected to the database, queries can't be executed without connection."
+            handler.execute("INSERT INTO errors (errorId, error_type) VALUES (%s, %s)", (errors, eType))
+            errors += 1
+            db.commit()
+        except:
+            pass
 
     @staticmethod
     def sendQuery(query):
@@ -86,6 +89,7 @@ class Database:
             return "You are not connected to the database, queries can't be executed without connection."
         handler.execute(query)
         db.commit()
+        return handler
 
     def getRecogsNums():
         global recogs
